@@ -1,0 +1,31 @@
+<style>
+*{box-sizing:border-box}body{margin:0;color:var(--maibot-foreground,#182437);font:14px/1.6 system-ui,"Microsoft YaHei",sans-serif}.wrap{max-width:1000px;margin:0 auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}h1{font-size:24px;margin:0}p{margin:6px 0 20px}.muted{color:var(--maibot-muted,#667588)}.tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 0;border-bottom:1px solid var(--maibot-border,#dce3ea)}button,select{font:inherit;border:1px solid var(--maibot-border,#cfd8e3);background:var(--maibot-surface,#fff);color:inherit;border-radius:8px;padding:7px 14px;cursor:pointer}button:disabled{opacity:.45;cursor:default}.badge{font-size:12px;border-radius:99px;padding:4px 10px;background:var(--maibot-soft,#eaf1f7)}#notice{padding-top:14px}.turn{padding:22px 0;border-bottom:1px solid var(--maibot-border,#e2e8ee)}.meta{font-size:12px;display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;color:var(--maibot-muted,#667588)}.bubble{white-space:pre-wrap;overflow-wrap:anywhere;border-radius:12px;padding:12px 15px;max-width:88%;margin:8px 0}.user{background:var(--maibot-soft,#eaf1f7);margin-left:auto}.bot{border:1px solid var(--maibot-border,#dce3ea)}.who{font-size:11px;font-weight:600;margin-bottom:4px}.error{color:var(--maibot-danger,#b42318);white-space:pre-wrap;font-size:12px}.pager{display:flex;gap:10px;justify-content:center;padding:20px}.empty{text-align:center;padding:48px 12px;color:var(--maibot-muted,#667588)}label{display:flex;gap:6px;align-items:center}
+</style>
+<main class="wrap">
+ <div class="top"><h1>独立人格聊天记录</h1><span id="connection" class="badge">正在连接后台</span></div>
+ <p class="muted">管理员只读 · 记录来自独立人格库，不进入原麦麦的聊天或记忆</p>
+ <div class="tools"><select id="chat" aria-label="选择人格"></select><label><input type="checkbox" id="errors">仅看错误</label><button id="refresh">刷新最新</button><span id="version" class="muted"></span></div>
+ <div id="notice" role="status" class="muted">正在读取记录…</div><section id="rows" aria-label="聊天记录"></section>
+ <div class="pager"><button id="newest">最新记录</button><button id="older" disabled>更早记录</button></div>
+</main>
+<script>
+(async()=>{
+ const $=id=>document.getElementById(id);let before=0,next=0,busy=false;
+ const states={claimed:'处理中',sent:'已发送',failed:'失败',uncertain:'发送结果待确认',no_reply:'自然收尾 · 未回复'};
+ const models={pending:'待调用',running:'生成中',succeeded:'生成成功',failed:'调用失败',skipped:'未调用模型'};
+ const when=t=>t?new Date(t*1000).toLocaleString('zh-CN',{timeZone:'Asia/Hong_Kong',hour12:false}):'旧版本未记录';
+ const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
+ function bubble(parent,cls,label,text){const n=el('div','bubble '+cls);n.append(el('div','who',label),el('div','',text));parent.append(n)}
+ async function load(reset=false){if(busy)return;busy=true;if(reset)before=0;$('refresh').disabled=true;$('notice').textContent='正在读取…';
+  try{const o=await maibot.query('overview');$('connection').textContent=o.ready?'独立通道在线':'独立通道未连接';$('version').textContent='v'+o.version;
+   const selected=$('chat').value;$('chat').replaceChildren(...o.chats.map(c=>{const n=el('option','',c.name+' · '+c.user_id);n.value=c.user_id;return n}));if(o.chats.some(c=>c.user_id===selected))$('chat').value=selected;
+   if(!$('chat').value){$('rows').replaceChildren(el('div','empty','尚未配置授权人格'));$('notice').textContent='';return}
+   const result=await maibot.query('history',{user_id:$('chat').value,before,errors_only:$('errors').checked});$('rows').replaceChildren();
+   for(const row of result.rows){const n=el('article','turn');const meta=el('div','meta');meta.append(el('span','',when(row.created)),el('span','',states[row.status]||row.status),el('span','',models[row.model_state]||'旧版本未记录调用详情'));if(row.model)meta.append(el('span','',row.model));if(row.elapsed_ms)meta.append(el('span','',row.elapsed_ms+' ms'));n.append(meta);bubble(n,'user','对方',row.user_text);if(row.assistant_text)bubble(n,'bot',$('chat').selectedOptions[0].textContent.split(' · ')[0],row.assistant_text);if(row.error_code)n.append(el('div','error','错误阶段：'+row.error_stage+' · '+row.error_code+' · '+when(row.updated)));if(row.emoji_state&&row.emoji_state!=='skipped'){const labels={sent:'已发表情包',no_match:'没有合适表情',failed:'表情失败',uncertain:'表情发送待确认',opt_out:'对方已停用表情',selecting:'选图中',sending:'发图中',cancelled:'配图已取消',unavailable:'选图器暂不可用'};n.append(el('div',row.emoji_error?'error':'muted','表情：'+(labels[row.emoji_state]||row.emoji_state)+(row.emoji_description?' · '+row.emoji_description:'')+(row.emoji_error?' · '+row.emoji_error:'')))}if(row.finish_reason==='length')n.append(el('div','error','本次生成达到长度预算'));$('rows').append(n)}
+   if(!result.rows.length)$('rows').append(el('div','empty',$('errors').checked?'没有错误记录':'暂无聊天记录'));
+   next=result.next_before;$('older').disabled=!result.has_more;$('notice').textContent='每页最多 5 个回合 · '+(before?'正在查看较早记录':'当前为最新记录')+' · 旧版记录保留原文，未补造调用耗时';
+  }catch(e){$('notice').textContent='读取失败：'+(e.message||'请确认后台登录仍有效')}finally{busy=false;$('refresh').disabled=false}}
+ $('refresh').onclick=()=>load(true);$('newest').onclick=()=>load(true);$('older').onclick=()=>{before=next;load()};$('chat').onchange=()=>load(true);$('errors').onchange=()=>load(true);
+ await maibot.ready;await load(true);
+})();
+</script>

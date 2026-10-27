@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "required_capabilities": ["custom_pages"],
+  "pages": [{
+    "id": "history",
+    "title": "独立人格聊天记录",
+    "description": "管理员只读查看独立人格记录；不写入麦麦聊天或记忆。",
+    "placement": "sidebar",
+    "icon": "database",
+    "mode": "custom",
+    "entry": "history.html",
+    "layout": "document",
+    "queries": {
+      "overview": {"api": "history_overview", "version": "1"},
+      "history": {"api": "history_page", "version": "1", "parameters": {
+        "user_id": {"type": "string", "required": true, "max_length": 20},
+        "before": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
+        "errors_only": {"type": "boolean"}
+      }}
+    }
+  }]
+}

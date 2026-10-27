@@ -1,0 +1,21 @@
+MaiBot Per User Persona — public source release 0.2.3
+Copyright (C) 2026 KuriyamaMirai08 and contributors
+SPDX-License-Identifier: GPL-3.0-or-later
+
+This repository includes an isolated bridge to Maibot_Emoji_Select_With_Text,
+by TogawaSakiko-desuwa, distributed under GPL-3.0-or-later:
+https://github.com/TogawaSakiko-desuwa/Maibot_Emoji_Select_With_Text
+
+Unmodified audited copies of selection.py, prompting.py and select_emoji.prompt
+from the installed 1.1.1 integration are included under tests/fixtures solely
+for reproducible offline tests. Their original upstream authorship is retained;
+these files are not loaded as the runtime emoji plugin. See LICENSE.
+
+The upstream project credits the original Emoji Text Selector by hsd221 and
+the design reference MaiBot-Better-Expression by CharTyr. This distribution
+does not claim authorship of those works and does not include their media.
+
+MaiBot and MaiBot-SnowLuma-Adapter are separate projects maintained by their
+respective authors. This plugin is an independent community project and is
+not represented as an official MaiBot release.
+

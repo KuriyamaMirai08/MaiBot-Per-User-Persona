@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "source_hashes": {
+    "selection.py": "8f0c9c90f9b46bdb8319164753504f6b8b489f178ffd43df2e99a8f398499763",
+    "prompting.py": "f4d411355cdc484adbac40fb386231f4b0b6fd8e8bb99cbe43dbd2d5a2cc2cee",
+    "select_emoji.prompt": "9d1afcb374cd05328a7df2d55c153d93fd537cd075ef4b87bc63ffee294cca44"
+  },
+  "users": {}
+}

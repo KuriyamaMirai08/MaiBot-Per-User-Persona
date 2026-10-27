@@ -1,0 +1,5 @@
+maibot-plugin-sdk==2.16.0
+aiohttp==3.14.5
+Pillow==12.3.0
+tomlkit==0.15.2
+

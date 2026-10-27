@@ -1,0 +1,14 @@
+[plugin]
+config_version = "0.2.3"
+enabled = false
+
+[router]
+# Use configure.py to validate the installed host and prepare private config.
+# Empty values intentionally cannot authorize anyone.
+account_id = ""
+legacy_user_ids = []
+authorized_user_ids = []
+secondary_privacy_lock = true
+primary_policy_sha256 = ""
+adapter_filters_sha256 = ""
+
